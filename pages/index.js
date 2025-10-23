@@ -42,4 +42,12 @@ export default function Home() {
       </div>
     </div>
   )
+}            <div style={{ fontSize: '2rem' }}>📊</div>
+            <h3>Meeting Summary</h3>
+            <p>Coming Soon</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
