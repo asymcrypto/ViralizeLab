@@ -24,7 +24,7 @@ export default function CarouselGenerator() {
       setCarousel(data);
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to generate carousel');
+      alert('Failed to generate carousel. Check your API key.');
     }
     setLoading(false);
   };
@@ -37,7 +37,6 @@ export default function CarouselGenerator() {
       color: 'white',
       fontFamily: 'Arial, sans-serif'
     }}>
-      {/* Header */}
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <button 
           onClick={() => router.push('/')}
@@ -58,7 +57,6 @@ export default function CarouselGenerator() {
           🐦 Twitter Carousel Generator
         </h1>
         
-        {/* Input Section */}
         <div style={{ 
           background: 'rgba(255,255,255,0.1)',
           padding: '2rem',
@@ -96,11 +94,10 @@ export default function CarouselGenerator() {
               width: '100%'
             }}
           >
-            {loading ? 'Generating...' : '✨ Generate Carousel'}
+            {loading ? 'Generating Carousel...' : '✨ Generate Carousel'}
           </button>
         </div>
 
-        {/* Results Section */}
         {carousel && (
           <div style={{ 
             background: 'rgba(255,255,255,0.1)',
@@ -133,20 +130,6 @@ export default function CarouselGenerator() {
                 </div>
               ))}
             </div>
-            
-            <button
-              style={{
-                background: '#4ecdc4',
-                color: 'white',
-                border: 'none',
-                padding: '1rem 2rem',
-                borderRadius: '8px',
-                marginTop: '1.5rem',
-                cursor: 'pointer'
-              }}
-            >
-              📥 Download as Image (Coming Soon)
-            </button>
           </div>
         )}
       </div>
