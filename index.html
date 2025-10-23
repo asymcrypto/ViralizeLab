@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViralizeLab - Interactive Carousel Creator</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            color: var(--secondary);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .carousel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .carousel-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .carousel-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .carousel-header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        
+        .carousel-body {
+            padding: 25px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .carousel-preview {
+            height: 150px;
+            background: var(--light);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: var(--dark);
+            text-align: center;
+            padding: 15px;
+            border: 2px dashed #ddd;
+        }
+        
+        .carousel-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary);
+        }
+        
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+            border: 1px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+        
+        .customization-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            display: none;
+        }
+        
+        .customization-panel.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .theme-option {
+            height: 80px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+        
+        .theme-option:hover {
+            transform: scale(1.05);
+        }
+        
+        .theme-option.selected {
+            box-shadow: 0 0 0 3px var(--primary);
+        }
+        
+        .preview-container {
+            margin-top: 30px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            background: var(--light);
+        }
+        
+        .preview-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+        
+        .carousel-preview-slide {
+            height: 300px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .slide-number {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        
+        .carousel-preview-slide h3 {
+            margin-bottom: 15px;
+            color: var(--secondary);
+        }
+        
+        .carousel-preview-slide p {
+            text-align: center;
+            line-height: 1.6;
+        }
+        
+        .user-name {
+            margin-top: 15px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #3aa8d0;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--dark);
+            font-size: 0.9rem;
+            margin-top: 50px;
+            border-top: 1px solid #ddd;
+        }
+        
+        @media (max-width: 768px) {
+            .carousel-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ViralizeLab</h1>
+            <p class="subtitle">AI Content Tools - Create, Customize & Download Carousels</p>
+        </header>
+        
+        <div class="carousel-grid">
+            <div class="carousel-card">
+                <div class="carousel-header">Twitter Carousel</div>
+                <div class="carousel-body">
+                    <div class="carousel-preview">
+                        Create engaging Twitter carousels with customizable themes
+                    </div>
+                    <div class="carousel-actions">
+                        <button class="btn btn-secondary">Coming Soon</button>
+                        <button class="btn btn-primary customize-btn" data-type="twitter">Customize</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="carousel-card">
+                <div class="carousel-header">LinkedIn Visuals</div>
+                <div class="carousel-body">
+                    <div class="carousel-preview">
+                        Professional LinkedIn visuals to boost your presence
+                    </div>
+                    <div class="carousel-actions">
+                        <button class="btn btn-secondary">Coming Soon</button>
+                        <button class="btn btn-primary customize-btn" data-type="linkedin">Customize</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="carousel-card">
+                <div class="carousel-header">Meeting Summary</div>
+                <div class="carousel-body">
+                    <div class="carousel-preview">
+                        Summarize meetings into shareable visual carousels
+                    </div>
+                    <div class="carousel-actions">
+                        <button class="btn btn-secondary">Coming Soon</button>
+                        <button class="btn btn-primary customize-btn" data-type="meeting">Customize</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="customization-panel" id="customizationPanel">
+            <div class="panel-header">
+                <h2 class="panel-title" id="panelTitle">Customize Carousel</h2>
+                <button class="close-btn" id="closePanel">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="userName">Your Name</label>
+                <input type="text" id="userName" placeholder="Enter your name to display on carousel">
+            </div>
+            
+            <div class="form-group">
+                <label for="carouselTitle">Carousel Title</label>
+                <input type="text" id="carouselTitle" placeholder="Enter carousel title">
+            </div>
+            
+            <div class="form-group">
+                <label>Select Theme</label>
+                <div class="theme-options">
+                    <div class="theme-option selected" data-theme="blue" style="background: linear-gradient(135deg, #4361ee, #3a0ca3);">Blue</div>
+                    <div class="theme-option" data-theme="green" style="background: linear-gradient(135deg, #4cc9f0, #4895ef);">Teal</div>
+                    <div class="theme-option" data-theme="purple" style="background: linear-gradient(135deg, #7209b7, #560bad);">Purple</div>
+                    <div class="theme-option" data-theme="sunset" style="background: linear-gradient(135deg, #f72585, #b5179e);">Sunset</div>
+                    <div class="theme-option" data-theme="forest" style="background: linear-gradient(135deg, #2a9d8f, #264653);">Forest</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="carouselContent">Carousel Content</label>
+                <textarea id="carouselContent" rows="4" placeholder="Enter content for your carousel (each line will be a separate slide)"></textarea>
+            </div>
+            
+            <div class="preview-container">
+                <h3 class="preview-title">Carousel Preview</h3>
+                <div id="carouselPreview">
+                    <div class="carousel-preview-slide" style="position: relative;">
+                        <div class="slide-number">1</div>
+                        <h3 id="previewTitle">Carousel Title</h3>
+                        <p id="previewContent">Your carousel content will appear here</p>
+                        <div class="user-name" id="previewName">By Your Name</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="resetBtn">Reset</button>
+                <button class="btn btn-success" id="downloadBtn">Download Carousel</button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>ViralizeLab &copy; 2025 - AI Content Tools Coming Soon!</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const customizeButtons = document.querySelectorAll('.customize-btn');
+            const customizationPanel = document.getElementById('customizationPanel');
+            const closePanel = document.getElementById('closePanel');
+            const resetBtn = document.getElementById('resetBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const panelTitle = document.getElementById('panelTitle');
+            const userName = document.getElementById('userName');
+            const carouselTitle = document.getElementById('carouselTitle');
+            const carouselContent = document.getElementById('carouselContent');
+            const themeOptions = document.querySelectorAll('.theme-option');
+            const previewTitle = document.getElementById('previewTitle');
+            const previewContent = document.getElementById('previewContent');
+            const previewName = document.getElementById('previewName');
+            const carouselPreview = document.getElementById('carouselPreview');
+            
+            let currentCarouselType = '';
+            
+            // Open customization panel
+            customizeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    currentCarouselType = this.getAttribute('data-type');
+                    customizationPanel.classList.add('active');
+                    
+                    // Set panel title based on carousel type
+                    const typeNames = {
+                        'twitter': 'Twitter Carousel',
+                        'linkedin': 'LinkedIn Visuals',
+                        'meeting': 'Meeting Summary'
+                    };
+                    
+                    panelTitle.textContent = `Customize ${typeNames[currentCarouselType]}`;
+                    
+                    // Set default content based on carousel type
+                    const defaultContent = {
+                        'twitter': 'Engaging content for Twitter\nSecond slide with more details\nThird slide with call to action',
+                        'linkedin': 'Professional content for LinkedIn\nKey insights and takeaways\nIndustry trends and analysis',
+                        'meeting': 'Meeting agenda and objectives\nKey discussion points and decisions\nAction items and next steps'
+                    };
+                    
+                    carouselContent.value = defaultContent[currentCarouselType];
+                    updatePreview();
+                });
+            });
+            
+            // Close customization panel
+            closePanel.addEventListener('click', function() {
+                customizationPanel.classList.remove('active');
+            });
+            
+            // Reset form
+            resetBtn.addEventListener('click', function() {
+                userName.value = '';
+                carouselTitle.value = '';
+                carouselContent.value = '';
+                document.querySelector('.theme-option.selected').classList.remove('selected');
+                document.querySelector('.theme-option[data-theme="blue"]').classList.add('selected');
+                updatePreview();
+            });
+            
+            // Theme selection
+            themeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelector('.theme-option.selected').classList.remove('selected');
+                    this.classList.add('selected');
+                    updatePreview();
+                });
+            });
+            
+            // Update preview in real-time
+            userName.addEventListener('input', updatePreview);
+            carouselTitle.addEventListener('input', updatePreview);
+            carouselContent.addEventListener('input', updatePreview);
+            
+            // Download carousel
+            downloadBtn.addEventListener('click', function() {
+                if (!userName.value.trim()) {
+                    alert('Please enter your name before downloading');
+                    return;
+                }
+                
+                if (!carouselTitle.value.trim()) {
+                    alert('Please enter a carousel title before downloading');
+                    return;
+                }
+                
+                // In a real implementation, this would generate and download the carousel
+                alert(`Your ${currentCarouselType} carousel is being prepared for download!`);
+                
+                // Simulate download process
+                setTimeout(() => {
+                    alert('Carousel downloaded successfully!');
+                }, 1500);
+            });
+            
+            // Update preview function
+            function updatePreview() {
+                previewTitle.textContent = carouselTitle.value || 'Carousel Title';
+                previewName.textContent = userName.value ? `By ${userName.value}` : 'By Your Name';
+                
+                // Update carousel slides based on content
+                const contentLines = carouselContent.value.split('\n').filter(line => line.trim());
+                carouselPreview.innerHTML = '';
+                
+                if (contentLines.length === 0) {
+                    const slide = document.createElement('div');
+                    slide.className = 'carousel-preview-slide';
+                    slide.style.position = 'relative';
+                    
+                    const slideNumber = document.createElement('div');
+                    slideNumber.className = 'slide-number';
+                    slideNumber.textContent = '1';
+                    
+                    const title = document.createElement('h3');
+                    title.textContent = previewTitle.textContent;
+                    
+                    const content = document.createElement('p');
+                    content.textContent = 'Your carousel content will appear here';
+                    
+                    const name = document.createElement('div');
+                    name.className = 'user-name';
+                    name.textContent = previewName.textContent;
+                    
+                    slide.appendChild(slideNumber);
+                    slide.appendChild(title);
+                    slide.appendChild(content);
+                    slide.appendChild(name);
+                    
+                    carouselPreview.appendChild(slide);
+                } else {
+ 
