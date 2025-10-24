@@ -1,0 +1,167 @@
+// Payment flow in your React/Vanilla JS frontend
+class CryptoPaymentHandler {
+  constructor() {
+    this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    this.walletAddresses = {
+      'usdc': TBikeQpNoSMumR5YvzXKY2mxSZy2njU8tZ', // TBikeQpNoSMumR5YvzXKY2mxSZy2njU8tZt: TBikeQpNoSMumR5YvzXKY2mxSZy2njU8tZ', // Your USDT wallet  
+      'btc': ' bc1qyw0u2lv20n7a8a5n403saf4hvw59lpm7rw05mv', // Your Bitcoin wallet
+      'eth': '0xECcaC2900682402eA17efDA528b6682F580f908B', // Your Ethereum wallet
+    }
+  }
+
+  async initiatePayment(credits, amount, cryptoCurrency) {
+    // Show payment modal with wallet address and amount
+    this.showPaymentModal(credits, amount, cryptoCurrency)
+    
+    // Start polling for payment confirmation
+    this.startPaymentPolling(credits, amount, cryptoCurrency)
+  }
+
+  showPaymentModal(credits, amount, cryptoCurrency) {
+    const walletAddress = this.walletAddresses[cryptoCurrency]
+    
+    const modalHTML = `
+      <div class="payment-modal active">
+        <div class="payment-content">
+          <h3>Send Crypto Payment</h3>
+          <div class="payment-info">
+            <p><strong>Amount:</strong> ${amount} ${cryptoCurrency.toUpperCase()}</p>
+            <p><strong>Credits:</strong> ${credits} credits</p>
+            <p><strong>Send to:</strong></p>
+            <div class="wallet-address">
+              <input type="text" value="${walletAddress}" readonly id="walletAddress">
+              <button onclick="copyWalletAddress()">Copy</button>
+            </div>
+            <p class="warning">⚠️ Only send ${cryptoCurrency.toUpperCase()} to this address</p>
+            <p class="note">After sending, keep this window open. We'll automatically detect your payment.</p>
+          </div>
+          <div class="payment-status" id="paymentStatus">
+            <div class="status-waiting">
+              <i class="fas fa-clock"></i>
+              <span>Waiting for payment...</span>
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button onclick="closePaymentModal()" class="btn btn-outline">Cancel</button>
+            <button onclick="markAsPaidManually()" class="btn btn-secondary">I've Sent Payment</button>
+          </div>
+        </div>
+      </div>
+    `
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML)
+  }
+
+  async startPaymentPolling(credits, amount, cryptoCurrency) {
+    const user = this.supabase.auth.getUser()
+    if (!user) return
+
+    // Poll every 10 seconds for 10 minutes
+    const maxAttempts = 60
+    let attempts = 0
+
+    const pollInterval = setInterval(async () => {
+      attempts++
+      
+      // In a real app, you'd check if user has entered a transaction hash
+      // For now, we'll simulate manual transaction hash entry
+      const transactionHash = await this.promptForTransactionHash()
+      
+      if (transactionHash) {
+        clearInterval(pollInterval)
+        await this.verifyPayment(user.id, transactionHash, cryptoCurrency, amount, credits)
+      }
+      
+      if (attempts >= maxAttempts) {
+        clearInterval(pollInterval)
+        this.updatePaymentStatus('Payment timeout. Please contact support.', 'error')
+      }
+    }, 10000) // 10 seconds
+  }
+
+  async promptForTransactionHash() {
+    // In your actual implementation, show a form for users to enter their TX hash
+    // For demo, we'll return a mock hash
+    return prompt('Enter your transaction hash (TXID):')
+  }
+
+  async verifyPayment(userId, transactionHash, cryptoCurrency, amount, credits) {
+    this.updatePaymentStatus('Verifying payment on blockchain...', 'verifying')
+    
+    try {
+      const response = await fetch('/functions/v1/crypto-payment-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          payment: {
+            user_id: userId,
+            transaction_hash: transactionHash,
+            crypto_currency: cryptoCurrency,
+            amount: amount,
+            credits: credits,
+            from_address: 'user-provided', // In real app, get from user input
+            to_address: this.walletAddresses[cryptoCurrency]
+          }
+        })
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        this.updatePaymentStatus(`Payment confirmed! ${credits} credits added to your account.`, 'success')
+        // Update UI with new credit balance
+        this.updateCreditBalance(result.new_balance)
+        
+        // Close modal after 3 seconds
+        setTimeout(() => {
+          this.closePaymentModal()
+        }, 3000)
+      } else {
+        this.updatePaymentStatus(`Payment failed: ${result.error}`, 'error')
+      }
+    } catch (error) {
+      this.updatePaymentStatus('Verification failed. Please try again or contact support.', 'error')
+    }
+  }
+
+  updatePaymentStatus(message, status) {
+    const statusElement = document.getElementById('paymentStatus')
+    if (statusElement) {
+      statusElement.innerHTML = `
+        <div class="status-${status}">
+          <i class="fas fa-${status === 'success' ? 'check-circle' : status === 'error' ? 'exclamation-circle' : 'sync-alt'}"></i>
+          <span>${message}</span>
+        </div>
+      `
+    }
+  }
+
+  updateCreditBalance(newBalance) {
+    // Update credit balance display throughout your app
+    const creditElements = document.querySelectorAll('.user-credits, .credits-badge')
+    creditElements.forEach(el => {
+      el.textContent = `${newBalance} Credits`
+    })
+  }
+
+  closePaymentModal() {
+    const modal = document.querySelector('.payment-modal')
+    if (modal) modal.remove()
+  }
+}
+
+// Global functions for HTML buttons
+function copyWalletAddress() {
+  const input = document.getElementById('walletAddress')
+  input.select()
+  document.execCommand('copy')
+  alert('Wallet address copied to clipboard!')
+}
+
+function markAsPaidManually() {
+  // Trigger the transaction hash prompt
+  window.cryptoPaymentHandler.startPaymentPolling()
+}
